@@ -1,0 +1,16 @@
+Test Script For PTRAC Output
+c CELL CARDS
+10 100 -18.74 -1
+20 0          -1
+
+c SURFACE CARDS
+1   so 1.0
+
+mode n
+phys:n 100 0 0 J J J 0 -1 J J J 0 0
+fmult 92235 method=5
+nps 100
+ptrac file=asc write=all
+sdef par=sf
+imp:n 1 0
+m100 92235 1
