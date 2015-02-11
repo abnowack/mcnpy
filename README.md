@@ -11,20 +11,13 @@ Example
 ```python
 from ptrac_reader import *
 
-ptrac = open('ptrac', 'r')
-
-# should be -1
-print ptrac.readline().strip()
-# parse headers and formats
-header = ptrac_header(ptrac)
-input_format = ptrac_input_format(ptrac)
-event_format = ptrac_event_format(ptrac)
-# parse a single event
-history = parse_ptrac_events(ptrac, event_format)
-# print first particle track
-print history.events[0]
-
-ptrac.close()
+with open('example/ptrac', 'r') as ptrac:
+  # ptrac header
+  header = ptrac_header(ptrac)
+  input_format = ptrac_input_format(ptrac)
+  event_format = ptrac_event_format(ptrac)
+  history = parse_ptrac_events(ptrac, event_format)
+  print history.events[0]
 ```
 Output:
 ```
