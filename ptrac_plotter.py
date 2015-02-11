@@ -30,11 +30,8 @@ def plot_events(events):
                   5000: 'orange'}
     
     for ev in events:
-        print ev
-        print ev.xxx**2 + ev.yyy**2 + ev.zzz**2
         ax.plot([ev.xxx], [ev.yyy], [ev.zzz], 'o', markersize=10, color=color_dict[ev.type], alpha=0.4)
         length = np.sqrt(ev.uuu**2 + ev.vvv**2 + ev.www**2)
-        print length
         a = Arrow3D([ev.xxx, ev.xxx + ev.uuu], [ev.yyy, ev.yyy + ev.vvv], [ev.zzz, ev.zzz + ev.www],
                     mutation_scale=20, lw=3, arrowstyle='-|>', color='r', alpha=0.4)
         ax.add_artist(a)
@@ -47,7 +44,7 @@ def plot_events(events):
     plt.show()
     
 if __name__ == '__main__':
-    ptrac = open('ptrac', 'r')
+    ptrac = open('example/ptrac', 'r')
     
     print ptrac.readline().strip()
     
