@@ -11,6 +11,8 @@ class ptrac_header(object):
     
     def __init__(self, ptrac):
         line = ptrac.readline().strip()
+        if line == '-1':
+            line = ptrac.readline().strip()
         header_data = line.split()
         
         self.kod = header_data[0]
@@ -181,21 +183,16 @@ class ptrac_event_format(object):
         return printstr
         
 if __name__ == '__main__':
-    ptrac = open('../ptrac', 'r')
-    
-    # should always start with -1
-    print ptrac.readline().strip()
-    
-    # ptrac header
-    header = ptrac_header(ptrac)
-    print header
-    
-    input_format = ptrac_input_format(ptrac)
-    print input_format
-    
-    event_format = ptrac_event_format(ptrac)
-    print event_format
-    
-    event_data = parse_ptrac_events(ptrac, event_format)
-    
-    ptrac.close()
+    with open('example/ptrac', 'r') as ptrac:
+        # ptrac header
+        header = ptrac_header(ptrac)
+        print header
+        
+        input_format = ptrac_input_format(ptrac)
+        print input_format
+        
+        event_format = ptrac_event_format(ptrac)
+        print event_format
+        
+        event_data = parse_ptrac_events(ptrac, event_format)
+        print event_data
