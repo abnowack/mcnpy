@@ -23,14 +23,19 @@ class Arrow3D(FancyArrowPatch):
         self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
         FancyArrowPatch.draw(self, renderer)
 
-def plot_events(events):
+def plot_events(events, ignore_termination=False, ignore_surface=False):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    color_dict = {1000: 'blue', 2000: 'blue', 3000: 'red', 4000: 'purple',
-                  5000: 'orange'}
+    color_dict = {1: 'blue', 2: 'blue', 3: 'red', 4: 'purple', 5: 'orange'}
     
     for ev in events:
-        ax.plot([ev.xxx], [ev.yyy], [ev.zzz], 'o', markersize=10, color=color_dict[ev.type], alpha=0.4)
+        if ignore_termination:
+            if ev.type / 1000 == 5:
+                continue
+        if ignore_surface:
+            if ev.type / 1000 == 3:
+                continue
+        ax.plot([ev.xxx], [ev.yyy], [ev.zzz], 'o', markersize=10, color=color_dict[ev.type/1000], alpha=0.4)
 #        length = np.sqrt(ev.uuu**2 + ev.vvv**2 + ev.www**2)
         a = Arrow3D([ev.xxx, ev.xxx + ev.uuu], [ev.yyy, ev.yyy + ev.vvv], [ev.zzz, ev.zzz + ev.www],
                     mutation_scale=20, lw=3, arrowstyle='-|>', color='r', alpha=0.4)
