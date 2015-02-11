@@ -6,10 +6,11 @@ Created on Wed Feb 04 12:34:38 2015
 """
 
 import matplotlib.pyplot as plt
-from ascii_ptrac_reader import *
+from ptrac_reader import *
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
+import numpy as np
 
 class Arrow3D(FancyArrowPatch):
     def __init__(self, xs, ys, zs, *args, **kwargs):

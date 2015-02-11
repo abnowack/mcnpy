@@ -86,10 +86,10 @@ class ptrac_event(object):
 def parse_ptrac_events(ptrac, event_format):
     ''' Read and parse PTRAC events corresponding to the read format '''
 
-    nps_format = ['nps', None, 'ncl', 'nsf', 'jptal', 'tal']
-    evt_format = [None, 'node', 'nsr', 'nxs', 'ntyn', 'nsf', 'angsrf', 'nter',
-                  'nbranch', 'ipt', 'ncl', 'mat', 'ncp', 'xxx', 'yyy', 'zzz', 
-                  'uuu', 'vvv', 'www', 'erg', 'wgt', 'tme']
+    format_ = ['nps', None, 'ncl', 'nsf', 'jptal', 'tal', None, 'node', 'nsr',
+               'nxs', 'ntyn', 'nsf', 'angsrf', 'nter', 'nbranch', 'ipt', 'ncl',
+               'mat', 'ncp', 'xxx', 'yyy', 'zzz', 'uuu', 'vvv', 'www', 'erg',
+               'wgt', 'tme']
     
     int_list = lambda l: [int(a) for a in l]
     float_list = lambda l: [float(a) for a in l]
@@ -101,33 +101,33 @@ def parse_ptrac_events(ptrac, event_format):
     
     history = ptrac_history()
     for i, nps_var in enumerate(nps_data):
-        nps_id = nps_format[event_format.id_nps[i]-1]
+        nps_id = format_[event_format.id_nps[i]-1]
         if nps_id is None:
             continue
         history.__setattr__(nps_id, nps_var)
     
-    # only for single evevnt, extend to multiple events
     while next_event_type != 9000:
         event_data = int_list(ptrac.readline().strip().split()) + \
                      float_list(ptrac.readline().strip().split())
 
         event = ptrac_event()
         (event.type, next_event_type) = (next_event_type, event_data[0])
+
+        if event.type / 1000 == 1: #src
+            flags = event_format.id_src_ev
+        elif abs(event.type / 1000) == 2: #bnk
+            flags = event_format.id_bnk_ev
+        elif event.type / 1000 == 3: #sur
+            flags = event_format.id_sur_ev
+        elif event.type / 1000 == 4: #col
+            flags = event_format.id_col_ev
+        elif event.type / 1000 == 5: #ter
+            flags = event_format.id_ter_ev
+        else:
+            pass
         
-        for i, ev_var in enumerate(event_data[1:]):
-            if event.type / 1000 == 1: #src
-                flags = event_format.id_src_ev
-            elif abs(event.type / 1000) == 2: #bnk
-                flags = event_format.id_bnk_ev
-            elif event.type / 1000 == 3: #sur
-                flags = event_format.id_src_ev
-            elif event.type / 1000 == 4: #col
-                flags = event_format.id_col_ev
-            elif event.type / 1000 == 5: #ter
-                pass
-            else:
-                pass
-            ev_id = evt_format[flags[i]-len(nps_format)-1]
+        for i, ev_var in enumerate(event_data):
+            ev_id = format_[flags[i]-1]
             if ev_id is None:
                 continue
             event.__setattr__(ev_id, ev_var)
@@ -181,7 +181,7 @@ class ptrac_event_format(object):
         return printstr
         
 if __name__ == '__main__':
-    ptrac = open('ptrac', 'r')
+    ptrac = open('../ptrac', 'r')
     
     # should always start with -1
     print ptrac.readline().strip()
