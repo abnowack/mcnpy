@@ -3,6 +3,10 @@
 Created on Tue Jan 06 20:52:30 2015
 
 @author: Aaron
+
+Notes:
+nbranch only seems to appear on termination event
+in n,Xn reactions bank events are created
 """
 from datetime import datetime
 
@@ -76,12 +80,7 @@ class ptrac_history(object):
 
 class ptrac_event(object):
     
-    __ntyn_rxns = {1: 'inelastic',
-                   2: 'elastic',
-                   -99: 'elastic/inelastic scatter',
-                   11: '2n_d',
-                   16: '2n',
-                   17: '3n'}    
+    __ntyn_rxn = {}
     
     def __init__(self):
         pass
@@ -94,7 +93,48 @@ class ptrac_event(object):
         return printstr
 
 def parse_ptrac_events(ptrac, event_format):
-    ''' Read and parse PTRAC events corresponding to the read format '''
+    ''' Read and parse PTRAC events corresponding to the read format
+    
+        NPS LINE
+        ========
+        NPS = Source particle count
+        NCL = Problem number of the cells
+        NSF = Problem number of the surfaces
+        JPTAL = Basic tally information
+        TAL = Tally scores accumulation
+        
+        EVENT LINE
+        ==========        
+        NODE = Number of nodes in track from source to here
+        NSR = Source type
+        NXS = Blocks of descriptors of cross-section tables
+        NTYN = Type of reaction in current collision
+        NSF = Surface Number
+        ANGSRF = Angle with surface normal (degrees)
+        NTER = Termination Type
+        NBRANCH = Branch number for this history
+        IPT = Type of particle
+        NCL = Problem number of the cells
+        MAT = Material number of the cells
+        NCP = Count of collisions per track
+        XXX = X-coordinate of particle position
+        YYY = Y-coordinate of particle position
+        ZZZ = Z-coordinate of particle position
+        UUU = Particle direction cosine with X-axis
+        VVV = Particle direction cosine with Y-axis
+        WWW = Particle direction cosine with Z-axis
+        ERG = Particle energy
+        WGT = Particle weight
+        TME = Time at the particle position
+        
+        TYPE
+        ====
+        1000   = SRC
+        2000+L = BANK
+        3000   = SURFACE
+        4000   = COLLISION
+        5000   = TERMINATION
+    '''
 
     format_ = ['nps', None, 'ncl', 'nsf', 'jptal', 'tal', None, 'node', 'nsr',
                'nxs', 'ntyn', 'nsf', 'angsrf', 'nter', 'nbranch', 'ipt', 'ncl',
@@ -104,50 +144,51 @@ def parse_ptrac_events(ptrac, event_format):
     int_list = lambda l: [int(a) for a in l]
     float_list = lambda l: [float(a) for a in l]
     
-    line = ptrac.readline().strip()
-    nps_data = int_list(line.split())
-    
-    if len(nps_data) == 0:
-        return
-    
-    next_event_type = nps_data[event_format.id_nps.index(2)]
-    
-    history = ptrac_history()
-    for i, nps_var in enumerate(nps_data):
-        nps_id = format_[event_format.id_nps[i]-1]
-        if nps_id is None:
-            continue
-        history.__setattr__(nps_id, nps_var)
-    
-    while next_event_type != 9000:
-        event_data = int_list(ptrac.readline().strip().split()) + \
-                     float_list(ptrac.readline().strip().split())
-
-        event = ptrac_event()
-        (event.type, next_event_type) = (next_event_type, event_data[0])
-
-        if event.type / 1000 == 1: #src
-            flags = event_format.id_src_ev
-        elif abs(event.type / 1000) == 2: #bnk
-            flags = event_format.id_bnk_ev
-        elif event.type / 1000 == 3: #sur
-            flags = event_format.id_sur_ev
-        elif event.type / 1000 == 4: #col
-            flags = event_format.id_col_ev
-        elif event.type / 1000 == 5: #ter
-            flags = event_format.id_ter_ev
-        else:
-            pass
+    while True:
+        line = ptrac.readline().strip()
+        nps_data = int_list(line.split())
         
-        for i, ev_var in enumerate(event_data):
-            ev_id = format_[flags[i]-1]
-            if ev_id is None:
+        if len(nps_data) == 0:
+            return
+        
+        next_event_type = nps_data[event_format.id_nps.index(2)]
+        
+        history = ptrac_history()
+        for i, nps_var in enumerate(nps_data):
+            nps_id = format_[event_format.id_nps[i]-1]
+            if nps_id is None:
                 continue
-            event.__setattr__(ev_id, ev_var)
+            history.__setattr__(nps_id, nps_var)
+        
+        while next_event_type != 9000:
+            event_data = int_list(ptrac.readline().strip().split()) + \
+                         float_list(ptrac.readline().strip().split())
     
-        history.events.append(event)
+            event = ptrac_event()
+            (event.type, next_event_type) = (next_event_type, event_data[0])
     
-    return history
+            if event.type / 1000 == 1: #src
+                flags = event_format.id_src_ev
+            elif abs(event.type / 1000) == 2: #bnk
+                flags = event_format.id_bnk_ev
+            elif event.type / 1000 == 3: #sur
+                flags = event_format.id_sur_ev
+            elif event.type / 1000 == 4: #col
+                flags = event_format.id_col_ev
+            elif event.type / 1000 == 5: #ter
+                flags = event_format.id_ter_ev
+            else:
+                pass
+            
+            for i, ev_var in enumerate(event_data):
+                ev_id = format_[flags[i]-1]
+                if ev_id is None:
+                    continue
+                event.__setattr__(ev_id, ev_var)
+        
+            history.events.append(event)
+        
+        yield history
 
 class ptrac_event_format(object):
     ''' Parser and Python Representation of PTRAC Event Format '''
