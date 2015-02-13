@@ -75,6 +75,14 @@ class ptrac_history(object):
         return printstr
 
 class ptrac_event(object):
+    
+    __ntyn_rxns = {1: 'inelastic',
+                   2: 'elastic',
+                   -99: 'elastic/inelastic scatter',
+                   11: '2n_d',
+                   16: '2n',
+                   17: '3n'}    
+    
     def __init__(self):
         pass
 
@@ -98,6 +106,9 @@ def parse_ptrac_events(ptrac, event_format):
     
     line = ptrac.readline().strip()
     nps_data = int_list(line.split())
+    
+    if len(nps_data) == 0:
+        return
     
     next_event_type = nps_data[event_format.id_nps.index(2)]
     
