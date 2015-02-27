@@ -161,7 +161,7 @@ def parse_ptrac_events(ptrac, event_format):
             history.__setattr__(nps_id, nps_var)
         
         while next_event_type != 9000:
-            event_data = int_list(ptrac.readline().strip().split()) + \
+            event_data = float_list(ptrac.readline().strip().split()) + \
                          float_list(ptrac.readline().strip().split())
     
             event = ptrac_event()
