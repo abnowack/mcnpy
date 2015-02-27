@@ -6,7 +6,7 @@ Created on Wed Feb 04 12:34:38 2015
 """
 
 import matplotlib.pyplot as plt
-from ptrac_reader import *
+from reader import *
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
