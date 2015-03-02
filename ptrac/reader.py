@@ -38,7 +38,7 @@ class ptrac_input_format(object):
     ''' Parser and Python Representation of PTRAC Input Format '''
     
     def __init__(self, ptrac):
-        line = ptrac.readline().strip() + ' ' + ptrac.readline().strip()
+        line = ptrac.readline().strip()
         in_fmt_data = [int(float(i)) for i in line.split()]
 
         i = 0
@@ -48,7 +48,14 @@ class ptrac_input_format(object):
         keywords = ['buffer', 'cell', 'event', 'file', 'filter', 'max', 'menp',
                     'nps', 'surface', 'tally', 'type', 'value', 'write']
         for keyword in keywords:
+            # if reach end of in_fmt_data, there is another line to read
+            if i >= len(in_fmt_data):
+                line = ptrac.readline().strip()
+                in_fmt_data += [int(float(j)) for j in line.split()]
             n_keys = in_fmt_data[i]
+            if i+n_keys >= len(in_fmt_data):
+                line = ptrac.readline().strip()
+                in_fmt_data += [int(float(j)) for j in line.split()]
             i += 1
             self.__class__.__setattr__(self, keyword, in_fmt_data[i:i+n_keys])
             i += n_keys
