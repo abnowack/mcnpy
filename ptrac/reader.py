@@ -120,7 +120,7 @@ def parse_ptrac_events(ptrac, event_format):
         ANGSRF = Angle with surface normal (degrees)
         NTER = Termination Type
         NBRANCH = Branch number for this history
-        IPT = Type of particle
+        IPT = Type of particle (1=neutron, 2=photon, 0=others)
         NCL = Problem number of the cells
         MAT = Material number of the cells
         NCP = Count of collisions per track
