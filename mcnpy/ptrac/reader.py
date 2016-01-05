@@ -13,10 +13,10 @@ from datetime import datetime
 class ptrac_header(object):
     ''' Parser and Python Represenation of PTRAC header '''
     
-    def __init__(self, ptrac):
-        line = ptrac.readline().strip()
+    def __init__(self, ptrac_file):
+        line = ptrac_file.readline().strip()
         if line == '-1':
-            line = ptrac.readline().strip()
+            line = ptrac_file.readline().strip()
         header_data = line.split()
         
         self.kod = header_data[0]
@@ -25,7 +25,7 @@ class ptrac_header(object):
         self.idtm = datetime.strptime('{0} {1}'.format(header_data[3],
                                       header_data[4]), '%m/%d/%y %H:%M:%S')
     
-        self.aid = ptrac.readline().strip()
+        self.aid = ptrac_file.readline().strip()
     
     def __str__(self):
         printstr = self.__class__.__name__
@@ -37,8 +37,8 @@ class ptrac_header(object):
 class ptrac_input_format(object):
     ''' Parser and Python Representation of PTRAC Input Format '''
     
-    def __init__(self, ptrac):
-        line = ptrac.readline().strip()
+    def __init__(self, ptrac_file):
+        line = ptrac_file.readline().strip()
         in_fmt_data = [int(float(i)) for i in line.split()]
 
         i = 0
@@ -50,11 +50,11 @@ class ptrac_input_format(object):
         for keyword in keywords:
             # if reach end of in_fmt_data, there is another line to read
             if i >= len(in_fmt_data):
-                line = ptrac.readline().strip()
+                line = ptrac_file.readline().strip()
                 in_fmt_data += [int(float(j)) for j in line.split()]
             n_keys = in_fmt_data[i]
             if i+n_keys >= len(in_fmt_data):
-                line = ptrac.readline().strip()
+                line = ptrac_file.readline().strip()
                 in_fmt_data += [int(float(j)) for j in line.split()]
             i += 1
             self.__class__.__setattr__(self, keyword, in_fmt_data[i:i+n_keys])
@@ -99,7 +99,7 @@ class ptrac_event(object):
         
         return printstr
 
-def parse_ptrac_events(ptrac, event_format):
+def parse_ptrac_events(ptrac_file, event_format):
     ''' Read and parse PTRAC events corresponding to the read format
     
         NPS LINE
@@ -152,7 +152,7 @@ def parse_ptrac_events(ptrac, event_format):
     float_list = lambda l: [float(a) for a in l]
     
     while True:
-        line = ptrac.readline().strip()
+        line = ptrac_file.readline().strip()
         nps_data = int_list(line.split())
         
         if len(nps_data) == 0:
@@ -168,8 +168,8 @@ def parse_ptrac_events(ptrac, event_format):
             history.__setattr__(nps_id, nps_var)
         
         while next_event_type != 9000:
-            event_data = float_list(ptrac.readline().strip().split()) + \
-                         float_list(ptrac.readline().strip().split())
+            event_data = float_list(ptrac_file.readline().strip().split()) + \
+                         float_list(ptrac_file.readline().strip().split())
     
             event = ptrac_event()
             (event.type, next_event_type) = (next_event_type, event_data[0])
@@ -200,10 +200,10 @@ def parse_ptrac_events(ptrac, event_format):
 class ptrac_event_format(object):
     ''' Parser and Python Representation of PTRAC Event Format '''
     
-    def __init__(self, ptrac):
+    def __init__(self, ptrac_file):
         int_list = lambda l: [int(a) for a in l]
         # parse n variable line
-        line = ptrac.readline().strip()
+        line = ptrac_file.readline().strip()
         n_ev_data = int_list(line.split())
         
         self.n_nps = n_ev_data[0]
@@ -218,7 +218,7 @@ class ptrac_event_format(object):
         # parse variable ids
         id_ev_data = []
         while len(id_ev_data) < sum(n_ev_data[:10]):
-            line = ptrac.readline().strip()
+            line = ptrac_file.readline().strip()
             id_ev_data += line.split()
         
         i = 0
@@ -240,18 +240,40 @@ class ptrac_event_format(object):
             printstr += '\n %s: %s' % item
         
         return printstr
+
+class PtracReader(object):
+    def __init__(self, filename, parse_on_init=True):
+        self.__ptrac_file = open(filename, 'r')
+        self.header = None
+        self.input_format = None
+        self.event_format = None
+
+        if parse_on_init:
+            self.parse()
+
+    @property
+    def is_parsed(self):
+        if self.header
+
+    def parse(self):
+        if self.__is_parsed:
+            raise RuntimeError('ptrac header has already been parsed!')
+            
+        self.header = ptrac_header(self.__ptrac_file)
+        self.input_format = ptrac_input_format(self.__ptrac_file)
+        self.event_format = ptrac_event_format(self.__ptrac_file)
+        self.__is_parsed = True
+
+    def parse_event(self):
+        if not self.__is_parsed:
+            raise RuntimeError('ptrac header has not been parsed!')
+
+        return parse_ptrac_events(self.__ptrac_file, self.event_format)
         
 if __name__ == '__main__':
-    with open('example/ptrac', 'r') as ptrac:
-        # ptrac header
-        header = ptrac_header(ptrac)
-        print header
-        
-        input_format = ptrac_input_format(ptrac)
-        print input_format
-        
-        event_format = ptrac_event_format(ptrac)
-        print event_format
-        
-        event_data = parse_ptrac_events(ptrac, event_format)
-        print event_data
+    ptrac = PtracReader('example/ptrac')
+    print ptrac.header
+    print ptrac.input_format
+    print ptrac.event_format
+    event_data = ptrac.parse_event()
+    print event_data
