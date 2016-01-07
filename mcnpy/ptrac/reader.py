@@ -251,9 +251,9 @@ class PtracReader(object):
         if parse_on_init:
             self.parse()
 
-    @property
-    def is_parsed(self):
-        if self.header
+    #@property
+    #def is_parsed(self):
+    #    if self.header
 
     def parse(self):
         if self.__is_parsed:

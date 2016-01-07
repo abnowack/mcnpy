@@ -9,10 +9,21 @@ However for testing purposes there should be no difference
 """
 
 import unittest
+from os import path
 
 from mcnpy.ace import reader
+from tests import utils
 
-class TestAceReader(unittest.TestCase):
+ace_test_file = "../data_files/92235.710nc"
+ace_test_file_path = path.dirname(__file__) + '/' + ace_test_file
+
+class TestAceReaderFilename(unittest.TestCase):
+    def test_extract_substrings(self):
+        string = '333444455555'
+        expected = ['333', '4444', '55555']
+        result = reader.extract_substrings(string, [3, 4, 5])
+        self.assertEqual(expected, result)
+
     def test_sza_to_string(self):
         s, z, a = 1, 92, 235
         expected = '001092235'
@@ -24,6 +35,34 @@ class TestAceReader(unittest.TestCase):
         expected = (1, 92, 235)
         result = reader.string_to_sza(sza_string)
         self.assertEqual(expected, result)
+
+    def test_ace_filename_to_szax(self):
+        filename = '92235.711nc'
+        expected = (0, 92, 235, 711, 'nc')
+        result = reader.ace_filename_to_szax(filename)
+        self.assertEqual(expected, result)
+
+class TestAceReaderHeader(unittest.TestCase):
+    def test_read_header(self):
+        test_header = """\
+                      2.0.0      92235.710nc              ENDFB-VII.1             
+                      233.024800 2.5301E-08 12/19/12     3
+                      The next two lines are the first two lines of 'old-style' ACE.
+                       92235.80c  233.024800  2.5301E-08   12/19/12
+                      U235 ENDF71x (jlconlin)  Ref. see jlconlin (ref 09/10/2012  10:00:53)    mat9228"""
+        test_file = utils.mock_file(test_header)
+        expected = reader.header(fmtversion='2.0.0', szax='92235.710nc', source='ENDFB-VII.1',
+                                 atwgtr='233.024800', temp='2.5301E-08', date='12/19/12', n='3', 
+                                 comments=["The next two lines are the first two lines of 'old-style' ACE.",
+                                           "92235.80c  233.024800  2.5301E-08   12/19/12",
+                                           "U235 ENDF71x (jlconlin)  Ref. see jlconlin (ref 09/10/2012  10:00:53)    mat9228"])
+
+        result = reader.read_header(test_file)
+        self.assertDictEqual(expected._asdict(), result._asdict())
+
+class TestAceReaderNXSArray(unittest.TestCase):
+    def test_read_nxs_array(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()
