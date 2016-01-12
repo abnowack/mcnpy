@@ -10,8 +10,9 @@ in n,Xn reactions bank events are created
 """
 from datetime import datetime
 
-class ptrac_header(object):
-    ''' Parser and Python Represenation of PTRAC header '''
+
+class PtracHeader(object):
+    """ Parser and Python Represenation of PTRAC header """
     
     def __init__(self, ptrac_file):
         line = ptrac_file.readline().strip()
@@ -34,8 +35,9 @@ class ptrac_header(object):
         
         return printstr
 
-class ptrac_input_format(object):
-    ''' Parser and Python Representation of PTRAC Input Format '''
+
+class PtracInputFormat(object):
+    """ Parser and Python Representation of PTRAC Input Format """
     
     def __init__(self, ptrac_file):
         line = ptrac_file.readline().strip()
@@ -67,7 +69,8 @@ class ptrac_input_format(object):
         
         return printstr
 
-class ptrac_history(object):
+
+class PtracHistory(object):
     
     def __init__(self):
         self.events = []
@@ -85,7 +88,8 @@ class ptrac_history(object):
         
         return printstr
 
-class ptrac_event(object):
+
+class PtracEvent(object):
     
     __ntyn_rxn = {}
     
@@ -99,49 +103,62 @@ class ptrac_event(object):
         
         return printstr
 
+
 def parse_ptrac_events(ptrac_file, event_format):
-    ''' Read and parse PTRAC events corresponding to the read format
-    
-        NPS LINE
-        ========
-        NPS = Source particle count
-        NCL = Problem number of the cells
-        NSF = Problem number of the surfaces
-        JPTAL = Basic tally information
-        TAL = Tally scores accumulation
-        
-        EVENT LINE
-        ==========        
-        NODE = Number of nodes in track from source to here
-        NSR = Source type
-        NXS = Blocks of descriptors of cross-section tables
-        NTYN = Type of reaction in current collision
-        NSF = Surface Number
-        ANGSRF = Angle with surface normal (degrees)
-        NTER = Termination Type
-        NBRANCH = Branch number for this history
-        IPT = Type of particle (1=neutron, 2=photon, 0=others)
-        NCL = Problem number of the cells
-        MAT = Material number of the cells
-        NCP = Count of collisions per track
-        XXX = X-coordinate of particle position
-        YYY = Y-coordinate of particle position
-        ZZZ = Z-coordinate of particle position
-        UUU = Particle direction cosine with X-axis
-        VVV = Particle direction cosine with Y-axis
-        WWW = Particle direction cosine with Z-axis
-        ERG = Particle energy
-        WGT = Particle weight
-        TME = Time at the particle position
-        
-        TYPE
-        ====
-        1000   = SRC
-        2000+L = BANK
-        3000   = SURFACE
-        4000   = COLLISION
-        5000   = TERMINATION
-    '''
+    """ Read and parse PTRAC events corresponding to the read format.
+
+    Parameters
+    ----------
+    ptrac_file : file
+    event_format : PtracEventFormat
+
+    Yields
+    ------
+    history : PtracHistory
+
+    Notes
+    -----
+
+    NPS LINE
+    ========
+    NPS = Source particle count
+    NCL = Problem number of the cells
+    NSF = Problem number of the surfaces
+    JPTAL = Basic tally information
+    TAL = Tally scores accumulation
+
+    EVENT LINE
+    ==========
+    NODE = Number of nodes in track from source to here
+    NSR = Source type
+    NXS = Blocks of descriptors of cross-section tables
+    NTYN = Type of reaction in current collision
+    NSF = Surface Number
+    ANGSRF = Angle with surface normal (degrees)
+    NTER = Termination Type
+    NBRANCH = Branch number for this history
+    IPT = Type of particle (1=neutron, 2=photon, 0=others)
+    NCL = Problem number of the cells
+    MAT = Material number of the cells
+    NCP = Count of collisions per track
+    XXX = X-coordinate of particle position
+    YYY = Y-coordinate of particle position
+    ZZZ = Z-coordinate of particle position
+    UUU = Particle direction cosine with X-axis
+    VVV = Particle direction cosine with Y-axis
+    WWW = Particle direction cosine with Z-axis
+    ERG = Particle energy
+    WGT = Particle weight
+    TME = Time at the particle position
+
+    TYPE
+    ====
+    1000   = SRC
+    2000+L = BANK
+    3000   = SURFACE
+    4000   = COLLISION
+    5000   = TERMINATION
+    """
 
     format_ = ['nps', None, 'ncl', 'nsf', 'jptal', 'tal', None, 'node', 'nsr',
                'nxs', 'ntyn', 'nsf', 'angsrf', 'nter', 'nbranch', 'ipt', 'ncl',
@@ -160,7 +177,7 @@ def parse_ptrac_events(ptrac_file, event_format):
         
         next_event_type = nps_data[event_format.id_nps.index(2)]
         
-        history = ptrac_history()
+        history = PtracHistory()
         for i, nps_var in enumerate(nps_data):
             nps_id = format_[event_format.id_nps[i]-1]
             if nps_id is None:
@@ -171,7 +188,7 @@ def parse_ptrac_events(ptrac_file, event_format):
             event_data = float_list(ptrac_file.readline().strip().split()) + \
                          float_list(ptrac_file.readline().strip().split())
     
-            event = ptrac_event()
+            event = PtracEvent()
             (event.type, next_event_type) = (next_event_type, event_data[0])
     
             if event.type / 1000 == 1: #src
@@ -197,8 +214,9 @@ def parse_ptrac_events(ptrac_file, event_format):
         
         yield history
 
-class ptrac_event_format(object):
-    ''' Parser and Python Representation of PTRAC Event Format '''
+
+class PtracEventFormat(object):
+    """ Parser and Python Representation of PTRAC Event Format """
     
     def __init__(self, ptrac_file):
         int_list = lambda l: [int(a) for a in l]
@@ -241,27 +259,29 @@ class ptrac_event_format(object):
         
         return printstr
 
+
 class PtracReader(object):
     def __init__(self, filename, parse_on_init=True):
         self.__ptrac_file = open(filename, 'r')
         self.header = None
         self.input_format = None
         self.event_format = None
+        self.__is_parse = False
 
         if parse_on_init:
             self.parse()
 
-    #@property
-    #def is_parsed(self):
-    #    if self.header
+    # @property
+    # def is_parsed(self):
+    #     if self.header
 
     def parse(self):
         if self.__is_parsed:
             raise RuntimeError('ptrac header has already been parsed!')
             
-        self.header = ptrac_header(self.__ptrac_file)
-        self.input_format = ptrac_input_format(self.__ptrac_file)
-        self.event_format = ptrac_event_format(self.__ptrac_file)
+        self.header = PtracHeader(self.__ptrac_file)
+        self.input_format = PtracInputFormat(self.__ptrac_file)
+        self.event_format = PtracEventFormat(self.__ptrac_file)
         self.__is_parsed = True
 
     def parse_event(self):
@@ -269,7 +289,8 @@ class PtracReader(object):
             raise RuntimeError('ptrac header has not been parsed!')
 
         return parse_ptrac_events(self.__ptrac_file, self.event_format)
-        
+
+
 if __name__ == '__main__':
     ptrac = PtracReader('example/ptrac')
     print ptrac.header

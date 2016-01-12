@@ -10,11 +10,33 @@ import tempfile
 import shutil
 from contextlib import contextmanager
 
+
 def clean_directory(clean_dir):
     shutil.rmtree(clean_dir)
 
+
 @contextmanager
-def run_mcnp(card, params={}, cores=1, clean=True, **kwargs):
+def run_mcnp(card, params=None, cores=1, clean=True):
+    """ Python interface for running MCNP programs.
+
+    Parameters
+    ----------
+    card : str
+        MCNP input card, can contain variable expressions using str.format(params)
+    params : dict, optional
+        Values to apply on MCNP input card
+    cores : int
+        Number of CPU cores for MCNP to run on
+    clean : bool
+        Clean the temporary output directory
+
+    Returns
+    -------
+    status : bool
+        Indicates successful run
+    output_dir : file
+        Temporary output file containing MCNP results
+    """
     card = card.format(**params)
     
     args = ['tasks', cores]
@@ -45,5 +67,3 @@ def run_mcnp(card, params={}, cores=1, clean=True, **kwargs):
     finally:
         if clean:
             clean_directory(output_dir)
-            
-#    return status, output_dir

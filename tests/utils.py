@@ -1,6 +1,7 @@
 from textwrap import dedent
 
-class mock_file(object):
+
+class MockFile(object):
     def __init__(self, data):
         self.data = dedent(data)
         self.lines = self.data.splitlines(True)

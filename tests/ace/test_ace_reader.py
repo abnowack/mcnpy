@@ -10,12 +10,14 @@ However for testing purposes there should be no difference
 
 import unittest
 from os import path
+import numpy as np
 
 from mcnpy.ace import reader
 from tests import utils
 
 ace_test_file = "../data_files/92235.710nc"
 ace_test_file_path = path.dirname(__file__) + '/' + ace_test_file
+
 
 class TestAceReaderFilename(unittest.TestCase):
     def test_extract_substrings(self):
@@ -42,6 +44,7 @@ class TestAceReaderFilename(unittest.TestCase):
         result = reader.ace_filename_to_szax(filename)
         self.assertEqual(expected, result)
 
+
 class TestAceReaderHeader(unittest.TestCase):
     def test_read_header(self):
         test_header = """\
@@ -50,7 +53,7 @@ class TestAceReaderHeader(unittest.TestCase):
                       The next two lines are the first two lines of 'old-style' ACE.
                        92235.80c  233.024800  2.5301E-08   12/19/12
                       U235 ENDF71x (jlconlin)  Ref. see jlconlin (ref 09/10/2012  10:00:53)    mat9228"""
-        test_file = utils.mock_file(test_header)
+        test_file = utils.MockFile(test_header)
         expected = reader.header(fmtversion='2.0.0', szax='92235.710nc', source='ENDFB-VII.1',
                                  atwgtr='233.024800', temp='2.5301E-08', date='12/19/12', n='3', 
                                  comments=["The next two lines are the first two lines of 'old-style' ACE.",
@@ -60,9 +63,15 @@ class TestAceReaderHeader(unittest.TestCase):
         result = reader.read_header(test_file)
         self.assertDictEqual(expected._asdict(), result._asdict())
 
-class TestAceReaderNXSArray(unittest.TestCase):
-    def test_read_nxs_array(self):
-        pass
+#class TestAceReaderATWGTRTable(unittest.TestCase):
+#    def test_read_atwgtr_table(self):
+#        test_atwgtr_table = """\
+#                                0         0.      0         0.      0         0.      0         0.
+#                                0         0.      0         0.      0         0.      0         0.
+#                                0         0.      0         0.      0         0.      0         0.
+#                                0         0.      0         0.      0         0.      0         0."""
+#        test_file = utils.MockFile(test_atwgtr_table)
+#        expected = reader.atwgtr_table(za=np.zeros())
 
 if __name__ == '__main__':
     unittest.main()
