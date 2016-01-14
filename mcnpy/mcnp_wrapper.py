@@ -37,12 +37,13 @@ def run_mcnp(card, params=None, cores=1, clean=True):
     output_dir : file
         Temporary output file containing MCNP results
     """
-    card = card.format(**params)
+    if params:
+        card = card.format(**params)
     
     args = ['tasks', cores]
     
     # create temp folder
-    output_dir = tempfile.mkdtemp(dir='.')
+    output_dir = tempfile.mkdtemp()
     with open(output_dir + '\\input.i', 'w') as f:
         f.write(card)
     
@@ -66,4 +67,5 @@ def run_mcnp(card, params=None, cores=1, clean=True):
         yield status, output_dir
     finally:
         if clean:
+            print output_dir
             clean_directory(output_dir)

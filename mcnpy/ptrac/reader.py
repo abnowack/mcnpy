@@ -266,7 +266,8 @@ class PtracReader(object):
         self.header = None
         self.input_format = None
         self.event_format = None
-        self.__is_parse = False
+        self.__is_parsed = False
+        self.__is_parsed = False
 
         if parse_on_init:
             self.parse()
