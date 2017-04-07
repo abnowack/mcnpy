@@ -9,15 +9,14 @@ Parse the header, input format, and event format. Then pass the event format to 
 
 Example
 ```python
-from ptrac_reader import *
+from mcnpy.ptrac.reader import *
 
-with open('example/ptrac', 'r') as ptrac:
-  # ptrac header
-  header = ptrac_header(ptrac)
-  input_format = ptrac_input_format(ptrac)
-  event_format = ptrac_event_format(ptrac)
-  history = parse_ptrac_events(ptrac, event_format)
-  print history.events[0]
+ptrac = PtracReader('example/ptrac')
+print ptrac.header
+print ptrac.input_format
+print ptrac.event_format
+event_data = ptrac.parse_event()
+print event_data[0]
 ```
 Output:
 ```
@@ -38,4 +37,4 @@ ptrac_event
   zzz: -0.19504
 ```
 
-ptrac_plotter.py shows how to plot events for display as shown above
+mcnpy/ptrac/plotter.py shows how to plot events for display as shown above
